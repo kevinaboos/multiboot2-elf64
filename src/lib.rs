@@ -78,11 +78,11 @@ impl BootInformation {
         unsafe { &*self.inner }
     }
 
-    fn get_tag(&self, typ: u32) -> Option<&'static Tag> {
+    pub fn get_tag(&self, typ: u32) -> Option<&'static Tag> {
         self.tags().find(|tag| tag.typ == typ)
     }
 
-    fn tags(&self) -> TagIter {
+    pub fn tags(&self) -> TagIter {
         TagIter { current: unsafe { self.inner.offset(1) } as *const _ }
     }
 }
