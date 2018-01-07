@@ -10,6 +10,8 @@ pub use elf_sections::{ElfSectionsTag, ElfSection, ElfSectionIter, ElfSectionTyp
 pub use memory_map::{MemoryMapTag, MemoryArea, MemoryAreaIter};
 pub use module::{ModuleTag, ModuleIter};
 pub use command_line::CommandLineTag;
+pub use acpi::{AcpiOldTag, RSDPv1};
+
 
 #[macro_use]
 extern crate bitflags;
@@ -20,6 +22,7 @@ mod elf_sections;
 mod memory_map;
 mod module;
 mod command_line;
+mod acpi;
 
 pub unsafe fn load(address: usize) -> BootInformation {
     if !cfg!(test) {
@@ -74,15 +77,19 @@ impl BootInformation {
         self.get_tag(1).map(|tag| unsafe { &*(tag as *const Tag as *const CommandLineTag) })
     }
 
+    pub fn acpi_old_tag(&self) -> Option<&'static AcpiOldTag> {
+        self.get_tag(14).map(|tag| unsafe { &*(tag as *const Tag as *const AcpiOldTag) })
+    }
+
     fn get(&self) -> &BootInformationInner {
         unsafe { &*self.inner }
     }
 
-    pub fn get_tag(&self, typ: u32) -> Option<&'static Tag> {
+    fn get_tag(&self, typ: u32) -> Option<&'static Tag> {
         self.tags().find(|tag| tag.typ == typ)
     }
 
-    pub fn tags(&self) -> TagIter {
+    fn tags(&self) -> TagIter {
         TagIter { current: unsafe { self.inner.offset(1) } as *const _ }
     }
 }
